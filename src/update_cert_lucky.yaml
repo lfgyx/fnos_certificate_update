@@ -1,5 +1,8 @@
-# 证书名称 / 域名 / 同时也是飞牛os上传的证书名
-cert_name: "lfgyx.cn"  
+# 飞牛OS证书名称 / 域名 / 注意自己上传之后是否是泛域名，泛域名为*.abc.cn,普通域名则为abc.cn
+fnos_cert_name: "*.abc.cn"  
+
+#lucky生成的证书名称，可以先生成一次看看
+lucky_cert_name: "abc.cn"  
 
 # 新证书文件所在路径
 cert_path: "/vol2/1000/Tools/Cert"
@@ -8,6 +11,8 @@ cert_path: "/vol2/1000/Tools/Cert"
 backup_dir: "/vol2/1000/Tools/Cert/Backup"
 
 # 飞牛OS证书位置  上传证书之后使用此命令找：  cat /usr/trim/etc/network_cert_all.conf
-old_crt: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1737344633/lfgyx.cn.crt"
-old_key: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1737344633/lfgyx.cn.key"
-old_fullchain: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1737344633/fullchain.crt"
+old_crt: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.crt"
+old_key: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.key"
+
+# 旧的中间证书，lucky生成的默认没有中间证书，可以置空不填
+old_fullchain: ""

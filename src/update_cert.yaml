@@ -1,25 +1,27 @@
 # 证书名称 / 域名 / 同时也是飞牛os上传的证书名
-cert_name: "abc.cn"  
+fnos_cert_name: "abc.cn"  
+
+# acme生成的证书名称
+acme_cert_name: "abc.cn"  
 
 # 新签发的证书文件保存路径
-cert_path: "./cert"
+cert_path: "/vol2/1000/Tools/Cert"
 
-# 旧证书备份目录路径
-backup_dir: "./back"
+# 旧 SSL 备份目录路径
+backup_dir: "/vol2/1000/Tools/Cert/backup"
 
 # 飞牛OS证书位置  上传证书之后使用此命令找：  cat /usr/trim/etc/network_cert_all.conf
-old_crt: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1735000000/abc.cn.crt"
-old_key: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1735000000/abc.cn.key"
-old_fullchain: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1735000000/fullchain.crt"
+old_crt: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/abc.cn.crt"
+old_key: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/abc.cn.key"
+old_fullchain: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/fullchain.crt"
 
 # 邮箱配置，用于生成证书
-email: "abc@mail.com"
+email: "lfgyx@outlook.com"
 
 # 域名列表，用于申请 SSL 证书
 domains:
-  - "abc.cn"
   - "*.abc.cn"
 
 # 阿里云 API 密钥
-Ali_Key: "key"
-Ali_Secret: "Secret"
+Ali_Key: "123456789"
+Ali_Secret: "123456789"

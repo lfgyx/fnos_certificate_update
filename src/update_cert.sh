@@ -13,7 +13,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # 读取配置文件中的配置项
-CERT_NAME=$(grep -oP '(?<=cert_name: ")[^"]+' "$CONFIG_FILE")
+FNOS_CERT_NAME=$(grep -oP '(?<=fnos_cert_name: ")[^"]+' "$CONFIG_FILE")
+ACME_CERT_NAME=$(grep -oP '(?<=acme_cert_name: ")[^"]+' "$CONFIG_FILE")
 CERT_PATH=$(grep -oP '(?<=cert_path: ")[^"]+' "$CONFIG_FILE")
 BACKUP_DIR=$(grep -oP '(?<=backup_dir: ")[^"]+' "$CONFIG_FILE")
 EMAIL=$(grep -oP '(?<=email: ")[^"]+' "$CONFIG_FILE")
@@ -27,14 +28,63 @@ OLD_FULLCHAIN=$(grep -oP '(?<=old_fullchain: ")[^"]+' "$CONFIG_FILE")
 DOMAINS=$(sed -n '/domains:/,/^[[:space:]]*$/p' "$CONFIG_FILE" | grep -v 'domains:' | sed 's/^[[:space:]]*//g' | sed 's/- //g' | sed 's/"//g' | tr '\n' ' ')
 
 # 检查是否读取到所有必要的信息
-if [ -z "$CERT_NAME" ] || [ -z "$CERT_PATH" ] || [ -z "$BACKUP_DIR" ] || [ -z "$EMAIL" ] || [ -z "$DOMAINS" ] || [ -z "$ALI_KEY" ] || [ -z "$ALI_SECRET" ] || [ -z "$OLD_CRT" ] || [ -z "$OLD_KEY" ]; then
+if [ -z "$FNOS_CERT_NAME" ] || [ -z "$ACME_CERT_NAME" ] || [ -z "$CERT_PATH" ] || [ -z "$BACKUP_DIR" ] || [ -z "$EMAIL" ] || [ -z "$DOMAINS" ] || [ -z "$ALI_KEY" ] || [ -z "$ALI_SECRET" ]; then
     echo "配置文件中缺少必需的信息！"
     exit 1
 fi
 
+echo "配置文件读取成功！"
+echo "飞牛证书名称: $FNOS_CERT_NAME"
+echo "ACME证书名称: $ACME_CERT_NAME"
+echo "证书路径: $CERT_PATH"
+echo "备份目录: $BACKUP_DIR"
+echo "邮箱: $EMAIL"
+echo "域名: $DOMAINS"
+echo "阿里云 API 密钥: $ALI_KEY"
+echo "阿里云 API 密钥 Secret: $ALI_SECRET"
+echo "旧证书路径: $OLD_CRT"
+echo "旧密钥路径: $OLD_KEY"
+
+#acme安装证书
+acme_install_cert(){
+	# 创建必要的目录（如果不存在）
+    echo "检查并创建证书文件保存目录 $CERT_PATH 和备份目录 $BACKUP_DIR..."
+    mkdir -p "$CERT_PATH"
+    mkdir -p "$BACKUP_DIR"
+
+    # 使用 curl 安装 acme.sh 并传递邮箱配置
+    echo "正在安装 acme.sh，使用邮箱 $EMAIL..."
+    curl https://get.acme.sh | sh -s email="$EMAIL"
+
+    # 配置阿里云 API 密钥
+    echo "正在配置阿里云密钥..."
+    export Ali_Key="$ALI_KEY"
+    export Ali_Secret="$ALI_SECRET"
+
+    # 拼接多个域名作为 -d 参数
+    DOMAIN_ARGS=""
+    for DOMAIN in $DOMAINS; do
+        DOMAIN_ARGS="$DOMAIN_ARGS -d $DOMAIN"
+    done
+
+    # 申请证书并为多个域名生成证书
+    echo "申请证书：$DOMAINS"
+    ~/.acme.sh/acme.sh --issue --dns dns_ali $DOMAIN_ARGS --force
+
+
+    # 保存证书到指定目录
+    echo "将证书保存到 $CERT_PATH"
+    ~/.acme.sh/acme.sh --install-cert -d "$ACME_CERT_NAME" \
+        --cert-file "$CERT_PATH/$ACME_CERT_NAME.crt" \
+        --key-file "$CERT_PATH/$ACME_CERT_NAME.key" \
+        --fullchain-file "$CERT_PATH/$ACME_CERT_NAME.fullchain.crt"
+}
+
 # 检查旧证书文件是否存在
 if [ ! -f "$OLD_CRT" ] || [ ! -f "$OLD_KEY" ]; then
-    echo "旧证书文件不存在！"
+    echo "旧证书文件不存在，直接获取并保存证书。"
+	acme_install_cert
+    echo "证书保存成功，证书所在目录：$CERT_PATH"
     exit 1
 fi
 
@@ -56,83 +106,50 @@ if [ $REMAIN_DAYS -gt 7 ]; then
     exit 0
 fi
 
-echo "配置文件读取成功！"
-echo "证书名称: $CERT_NAME"
-echo "证书路径: $CERT_PATH"
-echo "备份目录: $BACKUP_DIR"
-echo "邮箱: $EMAIL"
-echo "域名: $DOMAINS"
-echo "阿里云 API 密钥: $ALI_KEY"
-echo "阿里云 API 密钥 Secret: $ALI_SECRET"
-echo "旧证书路径: $OLD_CRT"
-echo "旧密钥路径: $OLD_KEY"
-
-# 创建必要的目录（如果不存在）
-echo "检查并创建证书文件保存目录 $CERT_PATH 和备份目录 $BACKUP_DIR..."
-mkdir -p "$CERT_PATH"
-mkdir -p "$BACKUP_DIR"
-
-# 使用 curl 安装 acme.sh 并传递邮箱配置
-echo "正在安装 acme.sh，使用邮箱 $EMAIL..."
-curl https://get.acme.sh | sh -s email="$EMAIL"
-
-# 配置阿里云 API 密钥
-echo "正在配置阿里云密钥..."
-export Ali_Key="$ALI_KEY"
-export Ali_Secret="$ALI_SECRET"
-
-# 拼接多个域名作为 -d 参数
-DOMAIN_ARGS=""
-for DOMAIN in $DOMAINS; do
-    DOMAIN_ARGS="$DOMAIN_ARGS -d $DOMAIN"
-done
-
-# 申请证书并为多个域名生成证书
-echo "申请证书：$DOMAINS"
-~/.acme.sh/acme.sh --issue --dns dns_ali $DOMAIN_ARGS --force
-
-# 保存证书到指定目录
-echo "将证书保存到 $CERT_PATH"
-~/.acme.sh/acme.sh --install-cert -d "$CERT_NAME" \
-    --cert-file "$CERT_PATH/$CERT_NAME.crt" \
-    --key-file "$CERT_PATH/$CERT_NAME.key" \
-    --fullchain-file "$CERT_PATH/$CERT_NAME.fullchain.crt"
+#安装证书
+acme_install_cert
 
 # 备份旧证书文件到备份目录
 echo "备份旧证书文件到 $BACKUP_DIR..."
 BACKUP_DATE=$(date +%F)  # 获取年月日格式
 mv "$OLD_CRT" "$BACKUP_DIR/$(basename $OLD_CRT)_$BACKUP_DATE"
 mv "$OLD_KEY" "$BACKUP_DIR/$(basename $OLD_KEY)_$BACKUP_DATE"
-mv "$OLD_FULLCHAIN" "$BACKUP_DIR/$(basename $OLD_FULLCHAIN)_$BACKUP_DATE"
 echo "已备份文件 $OLD_CRT 到 $BACKUP_DIR/$(basename $OLD_CRT)_$BACKUP_DATE"
 echo "已备份文件 $OLD_KEY 到 $BACKUP_DIR/$(basename $OLD_KEY)_$BACKUP_DATE"
 
 # 将新证书文件复制到旧证书文件的路径
 echo "将新证书文件复制到 $OLD_CRT 和 $OLD_KEY..."
-cp "$CERT_PATH/$CERT_NAME.crt" "$OLD_CRT"
-cp "$CERT_PATH/$CERT_NAME.key" "$OLD_KEY"
-cp "$CERT_PATH/$CERT_NAME.fullchain.crt" "$OLD_FULLCHAIN"
+cp "$CERT_PATH/$ACME_CERT_NAME.crt" "$OLD_CRT"
+cp "$CERT_PATH/$ACME_CERT_NAME.key" "$OLD_KEY"
 echo "新证书文件已复制到 $OLD_CRT 和 $OLD_KEY 路径"
 
 
 # 设置新证书文件权限为 755
 chmod 755 "$OLD_CRT"
 chmod 755 "$OLD_KEY"
-chmod 755 "$OLD_FULLCHAIN"
 echo "已为新证书文件设置 755 权限"
 
+# 如果有中间证书，则处理中间证书
+if [ -n "$OLD_FULLCHAIN" ]; then
+    mv "$OLD_FULLCHAIN" "$BACKUP_DIR/$(basename "$OLD_FULLCHAIN")_$BACKUP_DATE"
+    cp "$CERT_PATH/$ACME_CERT_NAME.fullchain.crt" "$OLD_FULLCHAIN"
+	chmod 755 "$OLD_FULLCHAIN"
+	echo "已更新中间证书"
+fi
+
+
 # 获取新证书的到期日期并更新数据库中的证书有效期
-NEW_EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH/$CERT_NAME.crt" | sed "s/^.*=\(.*\)$/\1/")
+NEW_EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH/$ACME_CERT_NAME.crt" | sed "s/^.*=\(.*\)$/\1/")
 NEW_EXPIRY_TIMESTAMP=$(date -d "$NEW_EXPIRY_DATE" +%s%3N)  # 获取毫秒级时间戳
 echo "新证书的有效期到: $NEW_EXPIRY_DATE"
 
 # 更新数据库中的证书有效期
 echo "更新数据库中的证书有效期..."
-psql -U postgres -d trim_connect -c "UPDATE cert SET valid_to=$NEW_EXPIRY_TIMESTAMP WHERE domain='$CERT_NAME'"
+psql -U postgres -d trim_connect -c "UPDATE cert SET valid_to=$NEW_EXPIRY_TIMESTAMP WHERE domain='$FNOS_CERT_NAME'"
 
 # 清理临时文件
 echo "清理临时文件..."
-~/.acme.sh/acme.sh --remove -d "$CERT_NAME"
+~/.acme.sh/acme.sh --remove -d "$ACME_CERT_NAME"
 
 echo "证书更新完成！"
 

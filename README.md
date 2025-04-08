@@ -7,6 +7,20 @@
 
 这是一个专为飞牛OS（Feiniu OS）系统设计的 Bash 脚本，用于自动更新 SSL/TLS 证书。脚本利用 acme.sh 工具进行证书续期，使用阿里云 DNS 进行域名验证，确保证书在过期前得到更新。更新后，脚本会备份旧证书并替换为新证书，同时自动重启相关服务以确保新证书生效。
 
+## 使用教程
+1. 将一下三个参数置空，填写好其他配置，bash执行脚本，即可获取到证书。
+```
+old_crt: ""
+old_key: ""
+old_fullchain: ""
+```
+
+```
+/bin/bash /path/to/update_cert.sh
+```
+2. 将证书在飞牛-设置-安全性-证书上传后，通过 cat /usr/trim/etc/network_cert_all.conf 获取old_crt、old_key、old_fullchain参数，填写yaml文件中
+3. 开启定时，每日执行即可
+
 ## 功能特点
 
 - **证书续期**：自动检查 SSL 证书的有效期，并在剩余有效天数少于 7 天时进行自动续期。
@@ -35,9 +49,11 @@ https://club.fnnas.com/forum.php?mod=viewthread&tid=12158&page=1&extra=#pid59164
 脚本需要一个 YAML 配置文件（`update_cert.yaml`），文件内容格式如下：
 
 ```yaml
-# 证书的名称，通常是你为证书选择的域名或服务名称。
-# 示例： "baidu.com"
-cert_name: "example.com"
+# 证书名称 / 域名 / 同时也是飞牛os上传的证书名 / 需要注意，如果生成的泛域名的话，需要填写fnos正确的证书名称，泛域名一般为 *.abc.cn
+fnos_cert_name: "abc.cn"  
+
+# acme生成的证书名称，acme生成的证书一般没有*. 可以先生成看一下
+acme_cert_name: "abc.cn"  
 
 # 证书的保存路径，即存放证书和密钥文件的目录。
 # 示例： "./cert"  或  "/path/to/cert"
@@ -63,10 +79,11 @@ Ali_Key: "your_aliyun_api_key"
 Ali_Secret: "your_aliyun_api_secret"
 
 # 飞牛OS证书位置  上传证书之后使用此命令找：  cat /usr/trim/etc/network_cert_all.conf
-# 该路径指向你当前正在使用的证书文件，脚本会根据该证书判断是否需要更新。
+# 此三项可以为空字符串，为空的话，会生成证书，在飞牛上传证书后再使用  cat /usr/trim/etc/network_cert_all.conf 就可以拿到这三个参数
 # 示例： "/path/to/old/certificate.crt"
-old_crt: "/path/to/old/certificate.crt"
-old_key: "/path/to/old/private.key"
+old_crt: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/abc.cn.crt"
+old_key: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/abc.cn.key"
+old_fullchain: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/fullchain.crt"
 
 # 域名列表，包含需要申请证书的所有域名。
 # 这些域名将在证书申请过程中使用，用于验证域名的所有权并生成证书。
