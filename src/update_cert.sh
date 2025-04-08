@@ -21,6 +21,7 @@ ALI_KEY=$(grep -oP '(?<=Ali_Key: ")[^"]+' "$CONFIG_FILE")
 ALI_SECRET=$(grep -oP '(?<=Ali_Secret: ")[^"]+' "$CONFIG_FILE")
 OLD_CRT=$(grep -oP '(?<=old_crt: ")[^"]+' "$CONFIG_FILE")
 OLD_KEY=$(grep -oP '(?<=old_key: ")[^"]+' "$CONFIG_FILE")
+OLD_FULLCHAIN=$(grep -oP '(?<=old_fullchain: ")[^"]+' "$CONFIG_FILE")
 
 # 使用 sed 提取 domains 部分的域名，忽略空行并删除前导空格，同时去除 `-` 和引号
 DOMAINS=$(sed -n '/domains:/,/^[[:space:]]*$/p' "$CONFIG_FILE" | grep -v 'domains:' | sed 's/^[[:space:]]*//g' | sed 's/- //g' | sed 's/"//g' | tr '\n' ' ')
@@ -102,6 +103,7 @@ echo "备份旧证书文件到 $BACKUP_DIR..."
 BACKUP_DATE=$(date +%F)  # 获取年月日格式
 mv "$OLD_CRT" "$BACKUP_DIR/$(basename $OLD_CRT)_$BACKUP_DATE"
 mv "$OLD_KEY" "$BACKUP_DIR/$(basename $OLD_KEY)_$BACKUP_DATE"
+mv "$OLD_FULLCHAIN" "$BACKUP_DIR/$(basename $OLD_FULLCHAIN)_$BACKUP_DATE"
 echo "已备份文件 $OLD_CRT 到 $BACKUP_DIR/$(basename $OLD_CRT)_$BACKUP_DATE"
 echo "已备份文件 $OLD_KEY 到 $BACKUP_DIR/$(basename $OLD_KEY)_$BACKUP_DATE"
 
@@ -109,12 +111,14 @@ echo "已备份文件 $OLD_KEY 到 $BACKUP_DIR/$(basename $OLD_KEY)_$BACKUP_DATE
 echo "将新证书文件复制到 $OLD_CRT 和 $OLD_KEY..."
 cp "$CERT_PATH/$CERT_NAME.crt" "$OLD_CRT"
 cp "$CERT_PATH/$CERT_NAME.key" "$OLD_KEY"
+cp "$CERT_PATH/$CERT_NAME.fullchain.crt" "$OLD_FULLCHAIN"
 echo "新证书文件已复制到 $OLD_CRT 和 $OLD_KEY 路径"
 
 
 # 设置新证书文件权限为 755
 chmod 755 "$OLD_CRT"
 chmod 755 "$OLD_KEY"
+chmod 755 "$OLD_FULLCHAIN"
 echo "已为新证书文件设置 755 权限"
 
 # 获取新证书的到期日期并更新数据库中的证书有效期

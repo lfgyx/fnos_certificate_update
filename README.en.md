@@ -26,6 +26,11 @@ This is a Bash script designed specifically for the Feiniu OS system, used to au
 ## Add a script to get a lucky certificate and automatically replace the FNOS certificate. Tutorial:
 https://club.fnnas.com/forum.php?mod=viewthread&tid=12158&page=1&extra=#pid59164
 
+## Common Problem
+
+- The web version of HTTPS access is normal, but the Feiniu APP prompts unsafe access
+- The intermediate certificate has not been uploaded or replaced. Adding and replacing the intermediate certificate can solve this problem.
+
 ## Configuration File Description
 
 The script requires a YAML configuration file (`update_cert.yaml`) with the following format:

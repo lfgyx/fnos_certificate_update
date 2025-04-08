@@ -10,6 +10,7 @@ backup_dir: "./back"
 # 飞牛OS证书位置  上传证书之后使用此命令找：  cat /usr/trim/etc/network_cert_all.conf
 old_crt: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1735000000/abc.cn.crt"
 old_key: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1735000000/abc.cn.key"
+old_fullchain: "/usr/trim/var/trim_connect/ssls/lfgyx.cn/1735000000/fullchain.crt"
 
 # 邮箱配置，用于生成证书
 email: "abc@mail.com"

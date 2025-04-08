@@ -25,6 +25,11 @@
 ## 新增lucky获取证书，并自动替换fnos证书的脚本。教程：
 https://club.fnnas.com/forum.php?mod=viewthread&tid=12158&page=1&extra=#pid59164
 
+## 常见问题
+
+- 网页版https访问正常，飞牛APP访问提示不安全
+- 中间证书没有上传和替换，将中间证书添加并替换即可解决这一问题。
+
 ## 配置文件说明
 
 脚本需要一个 YAML 配置文件（`update_cert.yaml`），文件内容格式如下：
