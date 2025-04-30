@@ -28,6 +28,7 @@ old_fullchain: ""
 - **服务重启**：更新证书后，自动重启指定服务（如 `webdav.service`、`smbftpd.service`、`trim_nginx.service`），确保新证书生效。
 - **阿里云 API 集成**：使用阿里云 API 密钥进行 DNS 域名验证，确保证书续期过程顺利进行。
 - **飞牛OS专用**：专为飞牛OS环境下的证书管理设计，适配飞牛OS的目录结构和服务管理方式。
+- **多种证书源支持**：支持acme.sh、lucky以及1panel等多种证书源，满足不同场景需求。
 
 ## 环境要求
 
@@ -38,6 +39,18 @@ old_fullchain: ""
 
 ## 新增lucky获取证书，并自动替换fnos证书的脚本。教程：
 https://club.fnnas.com/forum.php?mod=viewthread&tid=12158&page=1&extra=#pid59164
+
+## 新增1panel证书更新功能
+现在支持从1panel推送的证书目录中获取证书并自动更新到飞牛OS中。1panel自带证书申请功能，可以方便地申请和续期证书，并支持设置证书推送和更新后执行自定义脚本。
+
+### 使用方法
+1. 在1panel中申请证书并设置证书推送到指定目录（默认为`/vol2/1000/data/acme`）
+2. 配置`update_cert_1panel.yaml`文件，设置正确的证书路径和飞牛OS证书位置
+3. 执行脚本更新证书：
+```
+/bin/bash /path/to/update_cert_1panel.sh
+```
+4. 可选：在1panel的证书管理中设置证书更新后执行脚本，实现自动化更新
 
 ## 常见问题
 
@@ -95,8 +108,26 @@ old_fullchain: "/usr/trim/var/trim_connect/ssls/abc.cn/1744127279/fullchain.crt"
 domains:
   - "example.com"
   - "*.example.com"
+```
 
+### 1panel配置文件示例（update_cert_1panel.yaml）
+```yaml
+# 飞牛OS证书名称 / 域名 / 注意自己上传之后是否是泛域名，泛域名为*.abc.cn,普通域名则为abc.cn
+fnos_cert_name: "*.abc.cn"  
 
+# 1panel证书目录
+panel_cert_path: "/vol2/1000/data/acme"
+
+# 旧证书备份目录路径
+backup_dir: "/vol2/1000/Tools/Cert/Backup"
+
+# 飞牛OS证书位置  上传证书之后使用此命令找：  cat /usr/trim/etc/network_cert_all.conf
+old_crt: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.crt"
+old_key: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.key"
+
+# 旧的中间证书，1panel生成的证书包含中间证书，如果有请填写
+old_fullchain: ""
+```
 
 ## 许可证
 

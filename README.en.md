@@ -14,6 +14,7 @@ This is a Bash script designed specifically for the Feiniu OS system, used to au
 - **Service Restart**: Automatically restarts specified services (such as `webdav.service`, `smbftpd.service`, `trim_nginx.service`) after the certificate is updated to ensure the new certificate is applied.
 - **Alibaba Cloud API Integration**: Uses Alibaba Cloud API keys for DNS domain validation, ensuring a smooth certificate renewal process.
 - **Feiniu OS Specific**: Designed for certificate management in Feiniu OS, adapted to its directory structure and service management.
+- **Multiple Certificate Sources**: Supports acme.sh, lucky, and 1panel certificate sources to meet different requirements.
 
 ## System Requirements
 
@@ -25,6 +26,18 @@ This is a Bash script designed specifically for the Feiniu OS system, used to au
 
 ## Add a script to get a lucky certificate and automatically replace the FNOS certificate. Tutorial:
 https://club.fnnas.com/forum.php?mod=viewthread&tid=12158&page=1&extra=#pid59164
+
+## New 1panel Certificate Update Feature
+Now supports retrieving certificates from 1panel's certificate push directory and automatically updating them to Feiniu OS. 1panel has built-in certificate application functionality, making it easy to apply for and renew certificates, and supports setting up certificate push and executing custom scripts after updates.
+
+### Usage
+1. Apply for a certificate in 1panel and set up certificate push to a specified directory (default is `/vol2/1000/data/acme`)
+2. Configure the `update_cert_1panel.yaml` file, setting the correct certificate path and Feiniu OS certificate location
+3. Run the script to update the certificate:
+```
+/bin/bash /path/to/update_cert_1panel.sh
+```
+4. Optional: Set up execution of the script after certificate updates in 1panel's certificate management for automated updates
 
 ## Common Problem
 
@@ -80,8 +93,26 @@ old_key: "/path/to/old/private.key"
 domains:
   - "example.com"
   - "*.example.com"
+```
 
+### 1panel Configuration File Example (update_cert_1panel.yaml)
+```yaml
+# Feiniu OS certificate name / domain / Note whether it's a wildcard domain (*.abc.cn) or a regular domain (abc.cn)
+fnos_cert_name: "*.abc.cn"  
 
+# 1panel certificate directory
+panel_cert_path: "/vol2/1000/data/acme"
+
+# Old certificate backup directory
+backup_dir: "/vol2/1000/Tools/Cert/Backup"
+
+# Feiniu OS certificate location. After uploading the certificate, use this command to find it: cat /usr/trim/etc/network_cert_all.conf
+old_crt: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.crt"
+old_key: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.key"
+
+# Old intermediate certificate path. 1panel generated certificates include intermediate certificates. Can be left empty if not needed.
+old_fullchain: ""
+```
 
 ## License
 
