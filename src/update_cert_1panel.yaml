@@ -1,0 +1,15 @@
+# 飞牛OS证书名称 / 域名 / 注意自己上传之后是否是泛域名，泛域名为*.abc.cn,普通域名则为abc.cn
+fnos_cert_name: "*.abc.cn"  
+
+# 1panel证书目录
+panel_cert_path: "/vol2/1000/data/acme"
+
+# 旧证书备份目录路径
+backup_dir: "/vol2/1000/Tools/Cert/Backup"
+
+# 飞牛OS证书位置  上传证书之后使用此命令找：  cat /usr/trim/etc/network_cert_all.conf
+old_crt: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.crt"
+old_key: "/usr/trim/var/trim_connect/ssls/*.abc.cn/1744122157/*.abc.cn.key"
+
+# 旧的中间证书，1panel生成的证书包含中间证书，如果有请填写
+old_fullchain: "" 
